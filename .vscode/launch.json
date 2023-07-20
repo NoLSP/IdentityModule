@@ -15,7 +15,7 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/IdentityModule/bin/Debug/net7.0/IdentityModule.dll",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/IdentityModule",
             "stopAtEntry": false,
             // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
             "serverReadyAction": {
