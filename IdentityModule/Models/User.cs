@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace IdentityModule.Models
 {
+    [Table("Users")]
     public class User : IdentityUser<long>
     {
         [Required]

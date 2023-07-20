@@ -18,13 +18,13 @@ namespace IdentityModule.Controllers
     [Authorize]
     public class AccountController : Controller
     {
-        private readonly MyUserManager _userManager;
-        private readonly RoleManager<Role> _roleManager;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<long>> _roleManager;
         private readonly SignInManager<User> _signInManager;
         //private readonly IEmailSender _emailSender;
         private readonly UrlEncoder _urlEncoder;
-        public AccountController(MyUserManager userManager, SignInManager<User> signInManager, //IEmailSender emailSender,
-            UrlEncoder urlEncoder, RoleManager<Role> roleManager)
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, //IEmailSender emailSender,
+            UrlEncoder urlEncoder, RoleManager<IdentityRole<long>> roleManager)
         {
             _userManager = userManager;
             //_emailSender = emailSender;
@@ -45,8 +45,8 @@ namespace IdentityModule.Controllers
             if(!await _roleManager.RoleExistsAsync("Admin"))
             {
                 //create roles
-                await _roleManager.CreateAsync(new Role("Admin"));
-                await _roleManager.CreateAsync(new Role("User"));
+                await _roleManager.CreateAsync(new IdentityRole<long>("Admin"));
+                await _roleManager.CreateAsync(new IdentityRole<long>("User"));
             }
 
             List<SelectListItem> listItems = new List<SelectListItem>();
@@ -75,55 +75,63 @@ namespace IdentityModule.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model, string? returnurl = null)
         {
-            ViewData["ReturnUrl"] = returnurl;
-            returnurl = returnurl ?? Url.Content("~/");
-            
-            if (ModelState.IsValid)
+            try
             {
-                var user = new User 
-                { 
-                    UserName = model.Email, 
-                    Email = model.Email, 
-                    Name = model.Name,
-                    CreationDateTime = DateTime.UtcNow 
-                };
+                ViewData["ReturnUrl"] = returnurl;
+                returnurl = returnurl ?? Url.Content("~/");
 
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
+                if (ModelState.IsValid)
                 {
-                    if(model.RoleSelected!=null && model.RoleSelected.Length>0 && model.RoleSelected == "Admin")
+                    var user = new User
                     {
-                        await _userManager.AddToRoleAsync(user, "Admin");
-                    }
-                    else
+                        UserName = model.Email,
+                        Email = model.Email,
+                        Name = model.Name,
+                        CreationDateTime = DateTime.UtcNow
+                    };
+
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
                     {
-                        await _userManager.AddToRoleAsync(user, "User");
+                        if (model.RoleSelected != null && model.RoleSelected.Length > 0 && model.RoleSelected == "Admin")
+                        {
+                            await _userManager.AddToRoleAsync(user, "Admin");
+                        }
+                        else
+                        {
+                            await _userManager.AddToRoleAsync(user, "User");
+                        }
+
+                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+
+                        // await _emailSender.SendEmailAsync(model.Email, "Confirm your account - Identity Manager",
+                        //     "Please confirm your account by clicking here: <a href=\"" + callbackurl + "\">link</a>");
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(returnurl);
                     }
-
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-
-                    // await _emailSender.SendEmailAsync(model.Email, "Confirm your account - Identity Manager",
-                    //     "Please confirm your account by clicking here: <a href=\"" + callbackurl + "\">link</a>");
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnurl);
+                    AddErrors(result);
                 }
-                AddErrors(result);
-            }
 
-            List<SelectListItem> listItems = new List<SelectListItem>();
-            listItems.Add(new SelectListItem()
+                List<SelectListItem> listItems = new List<SelectListItem>();
+                listItems.Add(new SelectListItem()
+                {
+                    Value = "Admin",
+                    Text = "Admin"
+                });
+                listItems.Add(new SelectListItem()
+                {
+                    Value = "User",
+                    Text = "User"
+                });
+                model.RoleList = listItems;
+                return View(model);
+            }
+            catch (Exception ex)
             {
-                Value = "Admin",
-                Text = "Admin"
-            });
-            listItems.Add(new SelectListItem()
-            {
-                Value = "User",
-                Text = "User"
-            });
-            model.RoleList = listItems;
-            return View(model);
+
+                return View(ex);
+            }
         }
 
         [HttpGet]

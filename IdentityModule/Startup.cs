@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,18 +31,15 @@ namespace IdentityModule
         {
             services.AddDbContext<IdentityDataContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DatabaseConnection")));
 
-            services.AddScoped<UserStore<User, Role, IdentityDataContext, long>, MyUserStore> ();
-            services.AddScoped<UserManager<User>, MyUserManager>();
-            services.AddScoped<RoleManager<Role>, MyRoleManager>();
-            services.AddScoped<SignInManager<User>, MySignInManager>();
-            services.AddScoped<RoleStore<Role, IdentityDataContext, long>, MyRoleStore>();
+            services.AddIdentity<User, IdentityRole<long>>().AddEntityFrameworkStores<IdentityDataContext>().AddDefaultTokenProviders().AddDefaultUI();
+            services.Configure<IdentityOptions>(opt =>
+            {
+                opt.Password.RequiredLength = 5;
+                opt.Password.RequireLowercase = true;
+                opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
+                opt.Lockout.MaxFailedAccessAttempts = 5;
 
-            services.AddIdentity<User, Role>()
-                .AddUserStore<MyUserStore>()
-                .AddUserManager<MyUserManager>()
-                .AddRoleStore<MyRoleStore>()
-                .AddRoleManager<MyRoleManager>()
-                .AddSignInManager<MySignInManager>();
+            });
 
             services.AddControllersWithViews();
         }

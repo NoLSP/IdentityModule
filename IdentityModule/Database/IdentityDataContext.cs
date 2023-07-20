@@ -9,21 +9,22 @@ using System.Threading.Tasks;
 
 namespace IdentityModule.Database
 {
-    public class IdentityDataContext : IdentityDbContext
+    public class IdentityDataContext : IdentityDbContext<User, IdentityRole<long>, long>
     {
-        public IdentityDataContext(DbContextOptions options): base(options)
+        public IdentityDataContext(DbContextOptions options) : base(options)
         {
 
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<IdentityUserRole<long>>().HasKey(u => new { u.UserId, u.RoleId});
-            modelBuilder.Entity<IdentityUserLogin<long>>().HasKey(u => new { u.UserId, u.ProviderKey});
+            modelBuilder.Entity<IdentityUserRole<long>>().HasKey(u => new { u.UserId, u.RoleId });
+            modelBuilder.Entity<IdentityUserLogin<long>>().HasKey(u => new { u.UserId, u.ProviderKey });
+            modelBuilder.Entity<IdentityUserToken<long>>().HasKey(u => new { u.UserId, u.Value });
+            modelBuilder.Entity<IdentityRole<long>>().ToTable("Roles");
         }
 
-        public DbSet<User> User { get; set; }
-        public DbSet<Role> Role { get; set; }
-        public DbSet<IdentityUserRole<long>> UserRole { get; set; }
+        public new DbSet<User> Users { get; set; }
+        public new DbSet<IdentityRole<long>> Roles { get; set; }
     }
 }
