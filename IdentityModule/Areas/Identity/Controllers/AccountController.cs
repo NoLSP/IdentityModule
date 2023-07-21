@@ -105,7 +105,6 @@ namespace IdentityModule.Controllers
             }
             var result = await _userManager.ConfirmEmailAsync(user, code);
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
-
         }
 
         [HttpGet]
@@ -164,31 +163,31 @@ namespace IdentityModule.Controllers
             return View();
         }
 
-        // [HttpPost]
-        // [ValidateAntiForgeryToken]
-        // [AllowAnonymous]
-        // public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
-        // {
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
 
-        //     if (ModelState.IsValid)
-        //     {
-        //         var user = await _userManager.FindByEmailAsync(model.Email);
-        //         if (user == null)
-        //         {
-        //             return RedirectToAction("ForgotPasswordConfirmation");
-        //         }
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    return RedirectToAction("ForgotPasswordConfirmation");
+                }
 
-        //         var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-        //         var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
 
-        //         await _emailSender.SendEmailAsync(model.Email, "Reset Password - Identity Manager",
-        //             "Please reset your password by clicking here: <a href=\"" + callbackurl + "\">link</a>");
+                // await _emailSender.SendEmailAsync(model.Email, "Reset Password - Identity Manager",
+                //     "Please reset your password by clicking here: <a href=\"" + callbackurl + "\">link</a>");
 
-        //         return RedirectToAction("ForgotPasswordConfirmation");
-        //     }
+                return RedirectToAction("ForgotPasswordConfirmation");
+            }
 
-        //     return View(model);
-        // }
+            return View(model);
+        }
 
         [HttpGet]
         [AllowAnonymous]
@@ -305,7 +304,14 @@ namespace IdentityModule.Controllers
                 {
                     return View("Error");
                 }
-                var user = new User { UserName = model.Email, Email = model.Email, Name = model.Name };
+
+                var user = new User 
+                { 
+                    UserName = model.Email, 
+                    Email = model.Email, 
+                    Name = model.Name 
+                };
+                
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
