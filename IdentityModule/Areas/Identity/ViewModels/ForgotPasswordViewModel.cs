@@ -11,6 +11,5 @@ namespace IdentityModule.ViewModels
         [Required]
         [EmailAddress]
         public string Email { get; set; }
-
     }
 }

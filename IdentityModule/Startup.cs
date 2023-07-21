@@ -31,7 +31,12 @@ namespace IdentityModule
         {
             services.AddDbContext<IdentityDataContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DatabaseConnection")));
 
-            services.AddIdentity<User, IdentityRole<long>>().AddEntityFrameworkStores<IdentityDataContext>().AddDefaultTokenProviders().AddDefaultUI();
+            services.AddIdentity<User, IdentityRole<long>>( options => {
+                    options.User.RequireUniqueEmail = true;
+                }).AddEntityFrameworkStores<IdentityDataContext>()
+                .AddDefaultTokenProviders()
+                .AddDefaultUI();
+            
             services.Configure<IdentityOptions>(opt =>
             {
                 opt.Password.RequiredLength = 5;
