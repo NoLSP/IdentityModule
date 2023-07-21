@@ -1,0 +1,189 @@
+-- DROP SCHEMA public;
+
+--CREATE SCHEMA public AUTHORIZATION pg_database_owner;
+
+-- DROP SEQUENCE public."RoleClaim_Id_seq";
+
+CREATE SEQUENCE public."RoleClaim_Id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public."Role_Id_seq";
+
+CREATE SEQUENCE public."Role_Id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public."UserClaim_Id_seq";
+
+CREATE SEQUENCE public."UserClaim_Id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public."UserLogin_Id_seq";
+
+CREATE SEQUENCE public."UserLogin_Id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public."UserRole_Id_seq";
+
+CREATE SEQUENCE public."UserRole_Id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public."UserToken_Id_seq";
+
+CREATE SEQUENCE public."UserToken_Id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public."User_Id_seq";
+
+CREATE SEQUENCE public."User_Id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	START 1
+	CACHE 1
+	NO CYCLE;-- public."Roles" definition
+
+-- Drop table
+
+-- DROP TABLE public."Roles";
+
+CREATE TABLE public."Roles" (
+	"Id" int8 NOT NULL DEFAULT nextval('"Role_Id_seq"'::regclass),
+	"Name" varchar(256) NOT NULL,
+	"NormalizedName" varchar(255) NULL,
+	"ConcurrencyStamp" text NULL,
+	CONSTRAINT "Role_pkey" PRIMARY KEY ("Id")
+);
+
+
+-- public."Users" definition
+
+-- Drop table
+
+-- DROP TABLE public."Users";
+
+CREATE TABLE public."Users" (
+	"Id" int8 NOT NULL DEFAULT nextval('"User_Id_seq"'::regclass),
+	"UserName" varchar(255) NOT NULL,
+	"NormalizedUserName" varchar(255) NULL,
+	"PasswordHash" text NULL,
+	"SecurityStamp" text NULL,
+	"Email" varchar(255) NULL,
+	"NormalizedEmail" varchar(255) NULL,
+	"EmailConfirmed" bool NOT NULL DEFAULT false,
+	"PhoneNumber" varchar(255) NULL,
+	"PhoneNumberConfirmed" bool NOT NULL DEFAULT false,
+	"TwoFactorEnabled" bool NOT NULL DEFAULT false,
+	"LockoutEnd" timestamp NULL,
+	"LockoutEnabled" bool NOT NULL DEFAULT true,
+	"AccessFailedCount" int4 NOT NULL,
+	"ConcurrencyStamp" text NULL,
+	"CreationDateTime" timestamp NOT NULL,
+	"Name" varchar(255) NULL,
+	CONSTRAINT "User_pkey" PRIMARY KEY ("Id")
+);
+
+
+-- public."RoleClaims" definition
+
+-- Drop table
+
+-- DROP TABLE public."RoleClaims";
+
+CREATE TABLE public."RoleClaims" (
+	"Id" int8 NOT NULL DEFAULT nextval('"RoleClaim_Id_seq"'::regclass),
+	"ClaimType" text NULL,
+	"ClaimValue" text NULL,
+	"RoleId" int8 NOT NULL,
+	CONSTRAINT "RoleClaim_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "RoleClaim_Role_Id_fk" FOREIGN KEY ("RoleId") REFERENCES public."Roles"("Id") ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+
+-- public."UserClaims" definition
+
+-- Drop table
+
+-- DROP TABLE public."UserClaims";
+
+CREATE TABLE public."UserClaims" (
+	"Id" int8 NOT NULL DEFAULT nextval('"UserClaim_Id_seq"'::regclass),
+	"UserId" int8 NOT NULL,
+	"ClaimType" text NULL,
+	"ClaimValue" text NULL,
+	CONSTRAINT "UserClaim_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "UserClaim_User_Id_fk" FOREIGN KEY ("UserId") REFERENCES public."Users"("Id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- public."UserLogins" definition
+
+-- Drop table
+
+-- DROP TABLE public."UserLogins";
+
+CREATE TABLE public."UserLogins" (
+	"Id" int8 NOT NULL DEFAULT nextval('"UserLogin_Id_seq"'::regclass),
+	"UserId" int8 NOT NULL,
+	"LoginProvider" varchar(128) NOT NULL,
+	"ProviderKey" varchar(255) NOT NULL,
+	"ProviderDisplayName" varchar(255) NULL,
+	CONSTRAINT "UserLogin_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "UserLogin_User_Id_fk" FOREIGN KEY ("UserId") REFERENCES public."Users"("Id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- public."UserRoles" definition
+
+-- Drop table
+
+-- DROP TABLE public."UserRoles";
+
+CREATE TABLE public."UserRoles" (
+	"Id" int8 NOT NULL DEFAULT nextval('"UserRole_Id_seq"'::regclass),
+	"UserId" int8 NOT NULL,
+	"RoleId" int8 NOT NULL,
+	CONSTRAINT "UserRole_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "UserRole_Role_Id_fk" FOREIGN KEY ("RoleId") REFERENCES public."Roles"("Id") ON DELETE RESTRICT ON UPDATE RESTRICT,
+	CONSTRAINT "UserRole_User_Id_fk" FOREIGN KEY ("UserId") REFERENCES public."Users"("Id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- public."UserTokens" definition
+
+-- Drop table
+
+-- DROP TABLE public."UserTokens";
+
+CREATE TABLE public."UserTokens" (
+	"Id" int8 NOT NULL DEFAULT nextval('"UserToken_Id_seq"'::regclass),
+	"UserId" int8 NOT NULL,
+	"LoginProvider" varchar(128) NOT NULL,
+	"Name" varchar(255) NOT NULL,
+	"Value" text NULL,
+	CONSTRAINT "UserToken_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "UserToken_User_Id_fk" FOREIGN KEY ("UserId") REFERENCES public."Users"("Id") ON DELETE CASCADE ON UPDATE CASCADE
+);
