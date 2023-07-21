@@ -1,6 +1,8 @@
 -- DROP SCHEMA public;
 
---CREATE SCHEMA public AUTHORIZATION pg_database_owner;
+CREATE SCHEMA public AUTHORIZATION postgres;
+
+COMMENT ON SCHEMA public IS 'standard public schema';
 
 -- DROP SEQUENCE public."RoleClaim_Id_seq";
 
@@ -97,12 +99,13 @@ CREATE TABLE public."Users" (
 	"PhoneNumber" varchar(255) NULL,
 	"PhoneNumberConfirmed" bool NOT NULL DEFAULT false,
 	"TwoFactorEnabled" bool NOT NULL DEFAULT false,
-	"LockoutEnd" timestamp NULL,
+	"LockoutEnd" timestamptz NULL,
 	"LockoutEnabled" bool NOT NULL DEFAULT true,
 	"AccessFailedCount" int4 NOT NULL,
 	"ConcurrencyStamp" text NULL,
-	"CreationDateTime" timestamp NOT NULL,
+	"Created" timestamptz NOT NULL,
 	"Name" varchar(255) NULL,
+	"Modified" timestamptz NOT NULL,
 	CONSTRAINT "User_pkey" PRIMARY KEY ("Id")
 );
 

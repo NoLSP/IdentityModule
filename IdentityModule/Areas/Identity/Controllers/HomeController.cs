@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IdentityModule.Models;
 using IdentityModule.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityModule.Controllers
 {
+    [Area("Identity")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -24,6 +26,7 @@ namespace IdentityModule.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();

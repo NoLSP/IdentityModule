@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace IdentityModule.Controllers
 {
     [Authorize]
+    [Area("Identity")]
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
@@ -86,8 +87,7 @@ namespace IdentityModule.Controllers
                     {
                         UserName = model.Email,
                         Email = model.Email,
-                        Name = model.Name,
-                        CreationDateTime = DateTime.UtcNow
+                        Name = model.Name
                     };
 
                     var result = await _userManager.CreateAsync(user, model.Password);
