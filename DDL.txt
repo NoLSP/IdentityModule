@@ -149,12 +149,11 @@ CREATE TABLE public."UserClaims" (
 -- DROP TABLE public."UserLogins";
 
 CREATE TABLE public."UserLogins" (
-	"Id" int8 NOT NULL DEFAULT nextval('"UserLogin_Id_seq"'::regclass),
 	"UserId" int8 NOT NULL,
 	"LoginProvider" varchar(128) NOT NULL,
 	"ProviderKey" varchar(255) NOT NULL,
 	"ProviderDisplayName" varchar(255) NULL,
-	CONSTRAINT "UserLogin_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "UserLogin_pkey" PRIMARY KEY ("LoginProvider", "ProviderKey"),
 	CONSTRAINT "UserLogin_User_Id_fk" FOREIGN KEY ("UserId") REFERENCES public."Users"("Id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -166,10 +165,9 @@ CREATE TABLE public."UserLogins" (
 -- DROP TABLE public."UserRoles";
 
 CREATE TABLE public."UserRoles" (
-	"Id" int8 NOT NULL DEFAULT nextval('"UserRole_Id_seq"'::regclass),
 	"UserId" int8 NOT NULL,
 	"RoleId" int8 NOT NULL,
-	CONSTRAINT "UserRole_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "UserRole_pkey" PRIMARY KEY ("UserId", "RoleId"),
 	CONSTRAINT "UserRole_Role_Id_fk" FOREIGN KEY ("RoleId") REFERENCES public."Roles"("Id") ON DELETE RESTRICT ON UPDATE RESTRICT,
 	CONSTRAINT "UserRole_User_Id_fk" FOREIGN KEY ("UserId") REFERENCES public."Users"("Id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -182,11 +180,10 @@ CREATE TABLE public."UserRoles" (
 -- DROP TABLE public."UserTokens";
 
 CREATE TABLE public."UserTokens" (
-	"Id" int8 NOT NULL DEFAULT nextval('"UserToken_Id_seq"'::regclass),
 	"UserId" int8 NOT NULL,
 	"LoginProvider" varchar(128) NOT NULL,
 	"Name" varchar(255) NOT NULL,
 	"Value" text NULL,
-	CONSTRAINT "UserToken_pkey" PRIMARY KEY ("Id"),
+	CONSTRAINT "UserToken_pkey" PRIMARY KEY ("UserId", "LoginProvider", "Name"),
 	CONSTRAINT "UserToken_User_Id_fk" FOREIGN KEY ("UserId") REFERENCES public."Users"("Id") ON DELETE CASCADE ON UPDATE CASCADE
 );

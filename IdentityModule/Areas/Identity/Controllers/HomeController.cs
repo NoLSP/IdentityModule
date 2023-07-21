@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using IdentityModule.Models;
 using IdentityModule.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace IdentityModule.Controllers
 {
@@ -15,19 +16,35 @@ namespace IdentityModule.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly UserManager<User> _userManager;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, UserManager<User> userManager)
         {
             _logger = logger;
+            _userManager = userManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                ViewData["TwoFactorEnabled"] = false;
+            }
+            else
+            {
+                ViewData["TwoFactorEnabled"] = user.TwoFactorEnabled;
+            }
+            return View();
+        }
+
+        [Authorize(Roles ="Admin")]
+        public IActionResult Privacy()
         {
             return View();
         }
 
-        [Authorize]
-        public IActionResult Privacy()
+        public IActionResult AccessDenied() 
         {
             return View();
         }

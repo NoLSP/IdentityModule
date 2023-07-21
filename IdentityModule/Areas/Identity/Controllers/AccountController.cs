@@ -351,9 +351,9 @@ namespace IdentityModule.Controllers
             var user = await _userManager.GetUserAsync(User);
             await _userManager.ResetAuthenticatorKeyAsync(user);
             var token = await _userManager.GetAuthenticatorKeyAsync(user);
-            string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("IdentityManager"),
+            string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("IdentityModule"),
                 _urlEncoder.Encode(user.Email), token);
-            var model = new TwoFactorAuthenticationViewModel() { Token = token,QRCodeUrl=AuthenticatorUri };
+            var model = new TwoFactorAuthenticationViewModel() { Token = token, QRCodeUrl = AuthenticatorUri };
             return View(model);
         }
 

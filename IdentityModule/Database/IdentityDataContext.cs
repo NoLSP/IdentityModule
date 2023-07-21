@@ -19,8 +19,8 @@ namespace IdentityModule.Database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<IdentityUserRole<long>>().HasKey(u => new { u.UserId, u.RoleId });
-            modelBuilder.Entity<IdentityUserLogin<long>>().HasKey(u => new { u.UserId, u.ProviderKey });
-            modelBuilder.Entity<IdentityUserToken<long>>().HasKey(u => new { u.UserId, u.Value });
+            modelBuilder.Entity<IdentityUserLogin<long>>().HasKey(u => new { u.LoginProvider, u.ProviderKey });
+            modelBuilder.Entity<IdentityUserToken<long>>().HasKey(u => new { u.UserId, u.LoginProvider, u.Name });
             modelBuilder.Entity<IdentityRole<long>>().ToTable("Roles");
         }
 
