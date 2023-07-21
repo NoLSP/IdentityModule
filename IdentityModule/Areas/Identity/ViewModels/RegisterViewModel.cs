@@ -10,9 +10,15 @@ namespace IdentityModule.ViewModels
     public class RegisterViewModel
     {
         [Required]
+        [Display(Name = "UserName")]
+        public string UserName { get; set; }
+
+        [Required]
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }
+
+        public string Name { get; set; }
 
         [Required]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
@@ -24,13 +30,5 @@ namespace IdentityModule.ViewModels
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
-
-        [Required]
-        public string Name { get; set; }
-
-        public IEnumerable<SelectListItem>? RoleList { get; set; }
-
-        [Required]
-        public string RoleSelected { get; set; }
     }
 }

@@ -43,32 +43,8 @@ namespace IdentityModule.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register(string returnurl=null)
         {
-            if(!await _roleManager.RoleExistsAsync("Admin"))
-            {
-                //create roles
-                await _roleManager.CreateAsync(new IdentityRole<long>("Admin"));
-                await _roleManager.CreateAsync(new IdentityRole<long>("User"));
-            }
-
-            List<SelectListItem> listItems = new List<SelectListItem>();
-            listItems.Add(new SelectListItem()
-            {
-                Value = "Admin",
-                Text = "Admin"
-            });
-            listItems.Add(new SelectListItem()
-            {
-                Value = "User",
-                Text = "User"
-            });
-
-
-
             ViewData["ReturnUrl"] = returnurl;
-            RegisterViewModel registerViewModel = new RegisterViewModel() {
-                RoleList = listItems
-            };
-            return View(registerViewModel);
+            return View();
         }
 
         [HttpPost]
@@ -85,7 +61,7 @@ namespace IdentityModule.Controllers
                 {
                     var user = new User
                     {
-                        UserName = model.Email,
+                        UserName = model.UserName,
                         Email = model.Email,
                         Name = model.Name
                     };
@@ -93,14 +69,7 @@ namespace IdentityModule.Controllers
                     var result = await _userManager.CreateAsync(user, model.Password);
                     if (result.Succeeded)
                     {
-                        if (model.RoleSelected != null && model.RoleSelected.Length > 0 && model.RoleSelected == "Admin")
-                        {
-                            await _userManager.AddToRoleAsync(user, "Admin");
-                        }
-                        else
-                        {
-                            await _userManager.AddToRoleAsync(user, "User");
-                        }
+                        await _userManager.AddToRoleAsync(user, "User");
 
                         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                         var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
@@ -113,23 +82,10 @@ namespace IdentityModule.Controllers
                     AddErrors(result);
                 }
 
-                List<SelectListItem> listItems = new List<SelectListItem>();
-                listItems.Add(new SelectListItem()
-                {
-                    Value = "Admin",
-                    Text = "Admin"
-                });
-                listItems.Add(new SelectListItem()
-                {
-                    Value = "User",
-                    Text = "User"
-                });
-                model.RoleList = listItems;
                 return View(model);
             }
             catch (Exception ex)
             {
-
                 return View(ex);
             }
         }
@@ -169,7 +125,7 @@ namespace IdentityModule.Controllers
             returnurl = returnurl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     return LocalRedirect(returnurl);
@@ -189,11 +145,8 @@ namespace IdentityModule.Controllers
                 }
             }
 
-
             return View(model);
         }
-
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -38,7 +38,6 @@ namespace IdentityModule
                 opt.Password.RequireLowercase = true;
                 opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
                 opt.Lockout.MaxFailedAccessAttempts = 5;
-
             });
 
             services.AddControllersWithViews();
