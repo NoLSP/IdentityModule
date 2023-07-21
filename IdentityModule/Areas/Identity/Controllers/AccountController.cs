@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Text.Encodings.Web;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using IdentityModule.Services;
 
 namespace IdentityModule.Controllers
 {
@@ -41,21 +42,21 @@ namespace IdentityModule.Controllers
         
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Register(string returnurl=null)
+        public IActionResult Register(string? returnUrl)
         {
-            ViewData["ReturnUrl"] = returnurl;
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model, string? returnurl = null)
+        public async Task<IActionResult> Register(RegisterViewModel model, string? returnUrl)
         {
             try
             {
-                ViewData["ReturnUrl"] = returnurl;
-                returnurl = returnurl ?? Url.Content("~/");
+                ViewData["ReturnUrl"] = returnUrl;
+                returnUrl = returnUrl ?? Url.Content("~/");
 
                 if (ModelState.IsValid)
                 {
@@ -74,10 +75,14 @@ namespace IdentityModule.Controllers
                         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                         var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
 
+                        var emailService = new EmailService();
+                        await emailService.SendEmailAsync(model.Email, "Confirm your account - IdentityModule",
+                             "Please confirm your account by clicking here: <a href=\"" + callbackurl + "\">link</a>");
+
                         // await _emailSender.SendEmailAsync(model.Email, "Confirm your account - Identity Manager",
                         //     "Please confirm your account by clicking here: <a href=\"" + callbackurl + "\">link</a>");
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnurl);
+                        return LocalRedirect(returnUrl);
                     }
                     AddErrors(result);
                 }
@@ -95,43 +100,42 @@ namespace IdentityModule.Controllers
         public async Task<IActionResult> ConfirmEmail(string userId,string code)
         {
             if(userId==null || code == null)
-            {
                 return View("Error");
-            }
+
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-            {
                 return View("Error");
-            }
+
             var result = await _userManager.ConfirmEmailAsync(user, code);
+
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login(string returnurl=null)
+        public IActionResult Login(string? returnUrl)
         {
-            ViewData["ReturnUrl"] = returnurl;
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnurl=null)
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
         {
-            ViewData["ReturnUrl"] = returnurl;
-            returnurl = returnurl ?? Url.Content("~/");
+            ViewData["ReturnUrl"] = returnUrl;
+            returnUrl = returnUrl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
                 var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    return LocalRedirect(returnurl);
+                    return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
                 {
-                    return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnurl, model.RememberMe });
+                    return RedirectToAction(nameof(VerifyAuthenticatorCode), new { returnUrl, model.RememberMe });
                 }
                 if (result.IsLockedOut)
                 {
@@ -199,7 +203,7 @@ namespace IdentityModule.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ResetPassword(string code=null)
+        public IActionResult ResetPassword(string? code)
         {
             return code == null ? View("Error") : View();
         }
@@ -239,10 +243,10 @@ namespace IdentityModule.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public IActionResult ExternalLogin(string provider, string returnurl = null)
+        public IActionResult ExternalLogin(string provider, string? returnUrl)
         {
             //request a redirect to the external login provider
-            var redirecturl = Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnurl });
+            var redirecturl = Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirecturl);
             return Challenge(properties, provider);
         }
@@ -250,19 +254,19 @@ namespace IdentityModule.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallback(string returnurl = null,string remoteError=null)
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl, string? remoteError)
         {
-            returnurl = returnurl ?? Url.Content("~/");
+            returnUrl = returnUrl ?? Url.Content("~/");
+
             if (remoteError != null)
             {
                 ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
                 return View(nameof(Login));
             }
+
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
-            {
                 return RedirectToAction(nameof(Login));
-            }
 
             //Sign in the user with this external login provider, if the user already has a login.
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
@@ -270,21 +274,21 @@ namespace IdentityModule.Controllers
             {
                 //update any authentication tokens
                 await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
-                return LocalRedirect(returnurl);
+                return LocalRedirect(returnUrl);
             }
+            
             if (result.RequiresTwoFactor)
             {
-                return RedirectToAction("VerifyAuthenticatorCode", new { returnurl = returnurl });
+                return RedirectToAction("VerifyAuthenticatorCode", new { returnurl = returnUrl });
             }
             else
             {
                 //If the user does not have account, then we will ask the user to create an account.
-                ViewData["ReturnUrl"] = returnurl;
+                ViewData["ReturnUrl"] = returnUrl;
                 ViewData["ProviderDisplayName"] = info.ProviderDisplayName;
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                 var name = info.Principal.FindFirstValue(ClaimTypes.Name);
-                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email, Name=name });
-
+                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email, Name = name });
             }
         }
 
@@ -292,9 +296,9 @@ namespace IdentityModule.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnurl = null)
+        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
         {
-            returnurl = returnurl ?? Url.Content("~/");
+            returnUrl = returnUrl ?? Url.Content("~/");
 
             if (ModelState.IsValid)
             {
@@ -321,19 +325,18 @@ namespace IdentityModule.Controllers
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
-                        return LocalRedirect(returnurl);
+                        return LocalRedirect(returnUrl);
                     }
                 }
                 AddErrors(result);
             }
-            ViewData["ReturnUrl"] = returnurl;
+            ViewData["ReturnUrl"] = returnUrl;
             return View(model);
         }
 
         [HttpGet]
         public async Task<IActionResult> RemoveAuthenticator()
         {
-          
             var user = await _userManager.GetUserAsync(User);
             await _userManager.ResetAuthenticatorKeyAsync(user);
             await _userManager.SetTwoFactorEnabledAsync(user, false);

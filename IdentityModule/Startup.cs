@@ -45,11 +45,11 @@ namespace IdentityModule
                 opt.Lockout.MaxFailedAccessAttempts = 5;
             });
 
-            services.AddAuthentication().AddGoogle(options =>
-            {
-                options.ClientId = "";
-                options.ClientSecret = "";
-            });
+            // services.AddAuthentication().AddGoogle(options =>
+            // {
+            //     options.ClientId = "";
+            //     options.ClientSecret = "";
+            // });
 
             services.AddControllersWithViews();
         }
