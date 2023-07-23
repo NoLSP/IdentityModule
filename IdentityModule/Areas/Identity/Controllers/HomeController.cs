@@ -9,6 +9,7 @@ using IdentityModule.Models;
 using IdentityModule.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using System.Net;
 
 namespace IdentityModule.Controllers
 {
@@ -27,18 +28,15 @@ namespace IdentityModule.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                ViewData["TwoFactorEnabled"] = false;
-            }
-            else
-            {
-                ViewData["TwoFactorEnabled"] = user.TwoFactorEnabled;
-            }
+
+            ViewData["TwoFactorEnabled"] = user?.TwoFactorEnabled == true;
+
+            ViewData["IsAdministrator"] = user != null ? await user.IsAdministrator(_userManager) : false;
+
             return View();
         }
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public IActionResult Privacy()
         {
             return View();

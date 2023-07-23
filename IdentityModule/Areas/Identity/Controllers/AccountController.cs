@@ -20,19 +20,18 @@ namespace IdentityModule.Controllers
     [Area("Identity")]
     public class AccountController : Controller
     {
-        private readonly UserManager<User> _userManager;
-        private readonly RoleManager<IdentityRole<long>> _roleManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> p_UserManager;
+        private readonly SignInManager<User> p_SignInManager;
         //private readonly IEmailSender _emailSender;
-        private readonly UrlEncoder _urlEncoder;
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, //IEmailSender emailSender,
-            UrlEncoder urlEncoder, RoleManager<IdentityRole<long>> roleManager)
+        private readonly UrlEncoder p_UrlEncoder;
+
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager //IEmailSender emailSender
+            ,UrlEncoder urlEncoder)
         {
-            _userManager = userManager;
+            p_UserManager = userManager;
             //_emailSender = emailSender;
-            _signInManager = signInManager;
-            _urlEncoder = urlEncoder;
-            _roleManager = roleManager;
+            p_SignInManager = signInManager;
+            p_UrlEncoder = urlEncoder;
         }
 
         public IActionResult Index()
@@ -67,21 +66,21 @@ namespace IdentityModule.Controllers
                         Name = model.Name
                     };
 
-                    var result = await _userManager.CreateAsync(user, model.Password);
+                    var result = await p_UserManager.CreateAsync(user, model.Password);
                     if (result.Succeeded)
                     {
-                        await _userManager.AddToRoleAsync(user, "User");
+                        await p_UserManager.AddToRoleAsync(user, RoleNames.User);
 
-                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var code = await p_UserManager.GenerateEmailConfirmationTokenAsync(user);
                         var callbackurl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
 
-                        var emailService = new EmailService();
-                        await emailService.SendEmailAsync(model.Email, "Confirm your account - IdentityModule",
-                             "Please confirm your account by clicking here: <a href=\"" + callbackurl + "\">link</a>");
+                        //var emailService = new EmailService();
+                        //await emailService.SendEmailAsync(model.Email, "Confirm your account - IdentityModule",
+                        //     "Please confirm your account by clicking here: <a href=\"" + callbackurl + "\">link</a>");
 
                         // await _emailSender.SendEmailAsync(model.Email, "Confirm your account - Identity Manager",
                         //     "Please confirm your account by clicking here: <a href=\"" + callbackurl + "\">link</a>");
-                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        await p_SignInManager.SignInAsync(user, isPersistent: false);
                         return LocalRedirect(returnUrl);
                     }
                     AddErrors(result);
@@ -102,11 +101,11 @@ namespace IdentityModule.Controllers
             if(userId==null || code == null)
                 return View("Error");
 
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await p_UserManager.FindByIdAsync(userId);
             if (user == null)
                 return View("Error");
 
-            var result = await _userManager.ConfirmEmailAsync(user, code);
+            var result = await p_UserManager.ConfirmEmailAsync(user, code);
 
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
@@ -128,7 +127,7 @@ namespace IdentityModule.Controllers
             returnUrl = returnUrl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: true);
+                var result = await p_SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     return LocalRedirect(returnUrl);
@@ -155,7 +154,7 @@ namespace IdentityModule.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogOff()
         {
-            await _signInManager.SignOutAsync();
+            await p_SignInManager.SignOutAsync();
             return RedirectToAction(nameof(HomeController.Index),"Home");
         }
 
@@ -175,13 +174,13 @@ namespace IdentityModule.Controllers
 
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
+                var user = await p_UserManager.FindByEmailAsync(model.Email);
                 if (user == null)
                 {
                     return RedirectToAction("ForgotPasswordConfirmation");
                 }
 
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var code = await p_UserManager.GeneratePasswordResetTokenAsync(user);
                 var callbackurl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
 
                 // await _emailSender.SendEmailAsync(model.Email, "Reset Password - Identity Manager",
@@ -216,13 +215,13 @@ namespace IdentityModule.Controllers
 
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
+                var user = await p_UserManager.FindByEmailAsync(model.Email);
                 if (user == null)
                 {
                     return RedirectToAction("ResetPasswordConfirmation");
                 }
 
-                var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+                var result = await p_UserManager.ResetPasswordAsync(user, model.Code, model.Password);
                 if (result.Succeeded)
                 {
                     return RedirectToAction("ResetPasswordConfirmation");
@@ -247,7 +246,7 @@ namespace IdentityModule.Controllers
         {
             //request a redirect to the external login provider
             var redirecturl = Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl });
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirecturl);
+            var properties = p_SignInManager.ConfigureExternalAuthenticationProperties(provider, redirecturl);
             return Challenge(properties, provider);
         }
 
@@ -264,16 +263,16 @@ namespace IdentityModule.Controllers
                 return View(nameof(Login));
             }
 
-            var info = await _signInManager.GetExternalLoginInfoAsync();
+            var info = await p_SignInManager.GetExternalLoginInfoAsync();
             if (info == null)
                 return RedirectToAction(nameof(Login));
 
             //Sign in the user with this external login provider, if the user already has a login.
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            var result = await p_SignInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
             if (result.Succeeded)
             {
                 //update any authentication tokens
-                await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                await p_SignInManager.UpdateExternalAuthenticationTokensAsync(info);
                 return LocalRedirect(returnUrl);
             }
             
@@ -303,7 +302,7 @@ namespace IdentityModule.Controllers
             if (ModelState.IsValid)
             {
                 //get the info about the user from external login provider
-                var info = await _signInManager.GetExternalLoginInfoAsync();
+                var info = await p_SignInManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
                     return View("Error");
@@ -316,15 +315,15 @@ namespace IdentityModule.Controllers
                     Name = model.Name 
                 };
                 
-                var result = await _userManager.CreateAsync(user);
+                var result = await p_UserManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, "User");
-                    result = await _userManager.AddLoginAsync(user, info);
+                    await p_UserManager.AddToRoleAsync(user, "User");
+                    result = await p_UserManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                        await p_SignInManager.SignInAsync(user, isPersistent: false);
+                        await p_SignInManager.UpdateExternalAuthenticationTokensAsync(info);
                         return LocalRedirect(returnUrl);
                     }
                 }
@@ -337,9 +336,9 @@ namespace IdentityModule.Controllers
         [HttpGet]
         public async Task<IActionResult> RemoveAuthenticator()
         {
-            var user = await _userManager.GetUserAsync(User);
-            await _userManager.ResetAuthenticatorKeyAsync(user);
-            await _userManager.SetTwoFactorEnabledAsync(user, false);
+            var user = await p_UserManager.GetUserAsync(User);
+            await p_UserManager.ResetAuthenticatorKeyAsync(user);
+            await p_UserManager.SetTwoFactorEnabledAsync(user, false);
             return RedirectToAction(nameof(Index),"Home");
         }
 
@@ -348,11 +347,11 @@ namespace IdentityModule.Controllers
         {
             string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
-            var user = await _userManager.GetUserAsync(User);
-            await _userManager.ResetAuthenticatorKeyAsync(user);
-            var token = await _userManager.GetAuthenticatorKeyAsync(user);
-            string AuthenticatorUri = string.Format(AuthenticatorUriFormat, _urlEncoder.Encode("IdentityModule"),
-                _urlEncoder.Encode(user.Email), token);
+            var user = await p_UserManager.GetUserAsync(User);
+            await p_UserManager.ResetAuthenticatorKeyAsync(user);
+            var token = await p_UserManager.GetAuthenticatorKeyAsync(user);
+            string AuthenticatorUri = string.Format(AuthenticatorUriFormat, p_UrlEncoder.Encode("IdentityModule"),
+                p_UrlEncoder.Encode(user.Email), token);
             var model = new TwoFactorAuthenticationViewModel() { Token = token, QRCodeUrl = AuthenticatorUri };
             return View(model);
         }
@@ -362,11 +361,11 @@ namespace IdentityModule.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.GetUserAsync(User);
-                var succeeded = await _userManager.VerifyTwoFactorTokenAsync(user, _userManager.Options.Tokens.AuthenticatorTokenProvider, model.Code);
+                var user = await p_UserManager.GetUserAsync(User);
+                var succeeded = await p_UserManager.VerifyTwoFactorTokenAsync(user, p_UserManager.Options.Tokens.AuthenticatorTokenProvider, model.Code);
                 if (succeeded)
                 {
-                    await _userManager.SetTwoFactorEnabledAsync(user, true);
+                    await p_UserManager.SetTwoFactorEnabledAsync(user, true);
                 }
                 else
                 {
@@ -388,7 +387,7 @@ namespace IdentityModule.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberMe, string returnUrl = null)
         {
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            var user = await p_SignInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
                 return View("Error");
@@ -408,7 +407,7 @@ namespace IdentityModule.Controllers
                 return View(model);
             }
 
-            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, model.RememberMe, rememberClient: false);
+            var result = await p_SignInManager.TwoFactorAuthenticatorSignInAsync(model.Code, model.RememberMe, rememberClient: false);
 
             if (result.Succeeded)
             {

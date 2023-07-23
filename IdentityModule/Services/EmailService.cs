@@ -13,7 +13,7 @@ namespace IdentityModule.Services
             {
             using var emailMessage = new MimeMessage();
  
-            emailMessage.From.Add(new MailboxAddress("IdentityModule", "borovinskiyartem@yandex.ru"));
+            emailMessage.From.Add(new MailboxAddress("IdentityModule", "speciallibrary@proton.me"));
             emailMessage.To.Add(new MailboxAddress("", email));
             emailMessage.Subject = subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
@@ -23,8 +23,8 @@ namespace IdentityModule.Services
              
             using (var client = new SmtpClient())
             {
-                await client.ConnectAsync("smtp.yandex.ru", 25, false);
-                await client.AuthenticateAsync("borovinskiyartem@yandex.ru", "artem2000");
+                await client.ConnectAsync("smtp.protonmail.ch", 25, false);
+                await client.AuthenticateAsync("speciallibrary@proton.me", "NeDbHg_9_3_5");
                 await client.SendAsync(emailMessage);
  
                 await client.DisconnectAsync(true);

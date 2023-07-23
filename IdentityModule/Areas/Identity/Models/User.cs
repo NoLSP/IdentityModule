@@ -17,5 +17,10 @@ namespace IdentityModule.Models
         public string? Name { get; set; }
         public DateTime Created { get; set; } = DateTime.UtcNow;
         public DateTime Modified { get; set; } = DateTime.UtcNow;
+
+        public async Task<bool> IsAdministrator(UserManager<User> userManager)
+        {
+            return await userManager.IsInRoleAsync(this, RoleNames.Administrator);
+        }
     }
 }
