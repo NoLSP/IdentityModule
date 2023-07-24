@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace IdentityModule.Database
 {
-    public class IdentityDataContext : IdentityDbContext<User, IdentityRole<long>, long>
+    public class IdentityDataContext : IdentityDbContext<User, Role, long>
     {
         public IdentityDataContext(DbContextOptions options) : base(options)
         {
@@ -21,10 +21,21 @@ namespace IdentityModule.Database
             modelBuilder.Entity<IdentityUserRole<long>>().HasKey(u => new { u.UserId, u.RoleId });
             modelBuilder.Entity<IdentityUserLogin<long>>().HasKey(u => new { u.LoginProvider, u.ProviderKey });
             modelBuilder.Entity<IdentityUserToken<long>>().HasKey(u => new { u.UserId, u.LoginProvider, u.Name });
-            modelBuilder.Entity<IdentityRole<long>>().ToTable("Roles");
+
+            modelBuilder.Entity<User>()
+                .HasMany(e => e.Roles)
+                .WithMany(e => e.Users)
+                .UsingEntity<IdentityUserRole<long>>(
+                    pt => pt
+                    .HasOne<Role>()
+                    .WithMany(e => e.UserRoles),
+                    pt => pt
+                    .HasOne<User>()
+                    .WithMany(e => e.UserRoles))
+                .ToTable("UserRoles");
         }
 
         public new DbSet<User> Users { get; set; }
-        public new DbSet<IdentityRole<long>> Roles { get; set; }
+        public new DbSet<Role> Roles { get; set; }
     }
 }

@@ -22,12 +22,14 @@ namespace IdentityModule.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
-        public RegisterModel(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<RegisterModel> logger, IEmailSender emailSender)
+        public RegisterModel(UserManager<User> userManager, RoleManager<Role> roleManager, SignInManager<User> signInManager, ILogger<RegisterModel> logger, IEmailSender emailSender)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
@@ -89,7 +91,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    await _userManager.AddToRoleAsync(user, RoleNames.User);
+                    await _userManager.AddToRoleAsync(user, (await Role.User(_roleManager))!.Name!);
                     _logger.LogInformation("User added to role User.");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

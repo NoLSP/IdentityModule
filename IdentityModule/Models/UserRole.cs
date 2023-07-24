@@ -10,12 +10,10 @@ using Microsoft.AspNetCore.Identity;
 
 namespace IdentityModule.Models
 {
-    [Table("Roles")]
-    public partial class Role : IdentityRole<long>
-    {
-        public Role(string name) : base(name){}
-
-        public List<User> Users { get; } = new();
-        public List<IdentityUserRole<long>> UserRoles { get; } = new();
-    }
+    // [Table("UserRoles")]
+    // public class UserRole : IdentityUserRole<long>
+    // {
+    //     public virtual User User { get; set; }
+    //     public virtual Role Role { get; set; }
+    // }
 }

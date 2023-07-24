@@ -22,13 +22,15 @@ namespace IdentityModule.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
 
-        public ExternalLoginModel(SignInManager<User> signInManager, UserManager<User> userManager, ILogger<ExternalLoginModel> logger, IEmailSender emailSender)
+        public ExternalLoginModel(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<Role> roleManager, ILogger<ExternalLoginModel> logger, IEmailSender emailSender)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
             _emailSender = emailSender;
         }
@@ -136,7 +138,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
                     {
                         _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
 
-                        await _userManager.AddToRoleAsync(user, RoleNames.User);
+                        await _userManager.AddToRoleAsync(user, (await Role.User(_roleManager))!.Name!);
                         _logger.LogInformation("User added to role User.");
 
                         var userId = await _userManager.GetUserIdAsync(user);
