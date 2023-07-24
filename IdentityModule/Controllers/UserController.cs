@@ -151,71 +151,71 @@ namespace IdentityModule.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // [HttpGet]
-        // public async Task<IActionResult> ManageUserClaims(long userId)
-        // {
-        //     IdentityUser user = await _userManager.FindByIdAsync(userId);
+        [HttpGet]
+        public async Task<IActionResult> ManageUserClaims(long userId)
+        {
+            var user = await _db.Users.FindAsync(userId);
 
-        //     if (user == null)
-        //     {
-        //         return NotFound();
-        //     }
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-        //     var existingUserClaims = await _userManager.GetClaimsAsync(user);
+            var existingUserClaims = await _userManager.GetClaimsAsync(user);
 
-        //     var model = new UserClaimsViewModel()
-        //     {
-        //         UserId = userId
-        //     };
+            var model = new UserClaimsViewModel()
+            {
+                UserId = userId
+            };
 
-        //     foreach(Claim claim in ClaimStore.claimsList)
-        //     {
-        //         UserClaim userClaim = new UserClaim
-        //         {
-        //             ClaimType = claim.Type
-        //         };
-        //         if (existingUserClaims.Any(c => c.Type == claim.Type))
-        //         {
-        //             userClaim.IsSelected = true;
-        //         }
-        //         model.Claims.Add(userClaim);
-        //     }
+            foreach (Claim claim in ClaimStore.claimsList)
+            {
+                UserClaim userClaim = new UserClaim
+                {
+                    ClaimType = claim.Type
+                };
+                if (existingUserClaims.Any(c => c.Type == claim.Type))
+                {
+                    userClaim.IsSelected = true;
+                }
+                model.Claims.Add(userClaim);
+            }
 
-        //     return View(model);
-        // }
+            return View(model);
+        }
 
-        // [HttpPost]
-        // [ValidateAntiForgeryToken]
-        // public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel userClaimsViewModel)
-        // {
-        //     IdentityUser user = await _userManager.FindByIdAsync(userClaimsViewModel.UserId);
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel userClaimsViewModel)
+        {
+            var user = await _db.Users.FindAsync(userClaimsViewModel.UserId);
 
-        //     if (user == null)
-        //     {
-        //         return NotFound();
-        //     }
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-        //     var claims = await _userManager.GetClaimsAsync(user);
-        //     var result = await _userManager.RemoveClaimsAsync(user,claims);
+            var claims = await _userManager.GetClaimsAsync(user);
+            var result = await _userManager.RemoveClaimsAsync(user, claims);
 
-        //     if (!result.Succeeded)
-        //     {
-        //         TempData[SD.Error] = "Error while removing claims";
-        //         return View(userClaimsViewModel);
-        //     }
+            if (!result.Succeeded)
+            {
+                TempData[SD.Error] = "Error while removing claims";
+                return View(userClaimsViewModel);
+            }
 
-        //     result = await _userManager.AddClaimsAsync(user,
-        //         userClaimsViewModel.Claims.Where(c => c.IsSelected).Select(c => new Claim(c.ClaimType, c.IsSelected.ToString()))
-        //         );
+            result = await _userManager.AddClaimsAsync(user,
+                userClaimsViewModel.Claims.Where(c => c.IsSelected).Select(c => new Claim(c.ClaimType, c.IsSelected.ToString()))
+                );
 
-        //     if (!result.Succeeded)
-        //     {
-        //         TempData[SD.Error] = "Error while adding claims";
-        //         return View(userClaimsViewModel);
-        //     }
+            if (!result.Succeeded)
+            {
+                TempData[SD.Error] = "Error while adding claims";
+                return View(userClaimsViewModel);
+            }
 
-        //     TempData[SD.Success] = "Claims updated successfully";
-        //     return RedirectToAction(nameof(Index));
-        // }
+            TempData[SD.Success] = "Claims updated successfully";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

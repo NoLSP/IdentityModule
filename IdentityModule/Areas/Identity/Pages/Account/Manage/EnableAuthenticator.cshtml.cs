@@ -149,7 +149,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
         {
             return string.Format(
                 AuthenticatorUriFormat,
-                _urlEncoder.Encode("IdentityManager"),
+                _urlEncoder.Encode("IdentityModule"),
                 _urlEncoder.Encode(email),
                 unformattedKey);
         }

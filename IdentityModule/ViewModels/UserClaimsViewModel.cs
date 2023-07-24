@@ -11,7 +11,7 @@ namespace IdentityModule.ViewModels
         {
             Claims = new List<UserClaim>();
         }
-        public string UserId { get; set; }
+        public long UserId { get; set; }
         public List<UserClaim> Claims { get; set; }
     }
 
