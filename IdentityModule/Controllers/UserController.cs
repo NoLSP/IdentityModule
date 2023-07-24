@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityManager.Controllers
+namespace IdentityModule.Controllers
 {
     public class UserController : Controller
     {
@@ -97,7 +97,7 @@ namespace IdentityManager.Controllers
                 if(objFromDb.Name != user.Name)
                     objFromDb.Name = user.Name;
                 _db.SaveChanges();
-                //TempData[SD.Success] = "User has been edited successfully.";
+                TempData[SD.Success] = "User has been edited successfully.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -124,13 +124,13 @@ namespace IdentityManager.Controllers
                 //user is locked and will remain locked untill lockoutend time
                 //clicking on this action will unlock them
                 objFromDb.LockoutEnd = DateTime.UtcNow;
-                //TempData[SD.Success] = "User unlocked successfully.";
+                TempData[SD.Success] = "User unlocked successfully.";
             }
             else
             {
                 //user is not locked, and we want to lock the user
                 objFromDb.LockoutEnd = DateTime.UtcNow.AddYears(1000);
-                //TempData[SD.Success] = "User locked successfully.";
+                TempData[SD.Success] = "User locked successfully.";
             }
             _db.SaveChanges();
             return RedirectToAction(nameof(Index));
@@ -147,7 +147,7 @@ namespace IdentityManager.Controllers
             }
             _db.Users.Remove(objFromDb);
             _db.SaveChanges();
-            //TempData[SD.Success] = "User deleted successfully.";
+            TempData[SD.Success] = "User deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
