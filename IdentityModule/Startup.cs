@@ -45,6 +45,11 @@ namespace IdentityModule
                 opt.Lockout.MaxFailedAccessAttempts = 5;
             });
 
+            services.ConfigureApplicationCookie(opt =>
+            {
+                opt.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Identity/Home/AccessDenied");
+            });
+
             //services.AddAuthentication().AddGoogle(options =>
             //{
             //    options.ClientId = "";
@@ -52,6 +57,7 @@ namespace IdentityModule
             //});
 
             services.AddControllersWithViews();
+            services.AddRazorPages();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,7 +84,9 @@ namespace IdentityModule
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{area=Identity}/{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapRazorPages();
             });
         }
     }
