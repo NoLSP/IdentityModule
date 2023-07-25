@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using IdentityModule.Authorize;
 using IdentityModule.Database;
 using IdentityModule.Models;
 using IdentityModule.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IdentityModule.Controllers
 {
+    [Authorize(Policy = PolicyNames.Developer)]
     public class UserController : Controller
     {
         private readonly IdentityDataContext _db;
@@ -168,7 +171,7 @@ namespace IdentityModule.Controllers
                 UserId = userId
             };
 
-            foreach (Claim claim in ClaimStore.claimsList)
+            foreach (Claim claim in ClaimStore.ClaimsList)
             {
                 UserClaim userClaim = new UserClaim
                 {

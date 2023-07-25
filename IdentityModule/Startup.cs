@@ -41,7 +41,7 @@ namespace IdentityModule
             
             services.Configure<IdentityOptions>(opt =>
             {
-                opt.Password.RequiredLength = 5;
+                opt.Password.RequiredLength = 6;
                 opt.Password.RequireLowercase = true;
                 opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
                 opt.Lockout.MaxFailedAccessAttempts = 5;
@@ -60,17 +60,24 @@ namespace IdentityModule
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
-                options.AddPolicy("UserAndAdmin", policy => policy.RequireRole("Admin").RequireRole("User"));
-                options.AddPolicy("Admin_CreateAccess", policy => policy.RequireRole("Admin").RequireClaim("create", "True"));
-                options.AddPolicy("Admin_Create_Edit_DeleteAccess", policy => policy.RequireRole("Admin").RequireClaim("create", "True")
-                    .RequireClaim("edit", "True")
-                    .RequireClaim("Delete", "True"));
-                options.AddPolicy("Admin_Create_Edit_DeleteAccess_OR_SuperAdmin", policy => policy.RequireAssertion(context =>
+                options.AddPolicy(PolicyNames.Administrator, policy => policy.Requirements.Add(PolicyRequirements.Administartor));
+                options.AddPolicy(PolicyNames.User, policy => policy.Requirements.Add(PolicyRequirements.User));
+                options.AddPolicy(PolicyNames.Developer, policy => policy.Requirements.Add(PolicyRequirements.Developer));
+
+                options.AddPolicy(PolicyNames.Admin_CreateAccess, policy => policy.RequireRole(RoleNames.Administrator)
+                    .RequireClaim(ClaimNames.Create, true.ToString()));
+
+                options.AddPolicy(PolicyNames.Admin_Create_Edit_DeleteAccess, policy => policy.RequireRole(RoleNames.Administrator)
+                    .RequireClaim(ClaimNames.Create, true.ToString())
+                    .RequireClaim(ClaimNames.Edit, true.ToString())
+                    .RequireClaim(ClaimNames.Delete, true.ToString()));
+
+                options.AddPolicy(PolicyNames.Admin_Create_Edit_DeleteAccess_OR_Developer, policy => policy.RequireAssertion(context =>
                     AuthorizeAdminWithClaimsOrSuperAdmin(context)));
-                options.AddPolicy("OnlySuperAdminChecker", policy => policy.Requirements.Add(new OnlySuperAdminChecker()));
-                options.AddPolicy("AdminWithMoreThan1000Days", policy => policy.Requirements.Add(new AdminWithMoreThan1000DaysRequirement(1000)));
-                options.AddPolicy("FirstNameAuth", policy => policy.Requirements.Add(new FirstNameAuthRequirement("billy")));
+
+                options.AddPolicy(PolicyNames.AdminWithMoreThan1000Days, policy => policy.Requirements.Add(new AdminWithMoreThan1000DaysRequirement(1000)));
+
+                options.AddPolicy(PolicyNames.FirstNameAuth, policy => policy.Requirements.Add(new FirstNameAuthRequirement("billy")));
             });
 
             services.AddScoped<IAuthorizationHandler, AdminWithOver1000DaysHandler>();
@@ -113,10 +120,12 @@ namespace IdentityModule
 
         private bool AuthorizeAdminWithClaimsOrSuperAdmin(AuthorizationHandlerContext context)
         {
-            return (context.User.IsInRole("Admin") && context.User.HasClaim(c => c.Type == "Create" && c.Value == "True")
-                        && context.User.HasClaim(c => c.Type == "Edit" && c.Value == "True")
-                        && context.User.HasClaim(c => c.Type == "Delete" && c.Value == "True")
-                    ) || context.User.IsInRole("SuperAdmin");
+            return (
+                    context.User.IsInRole(RoleNames.Administrator) && 
+                    context.User.HasClaim(c => c.Type == ClaimNames.Create && c.Value == true.ToString()) && 
+                    context.User.HasClaim(c => c.Type == ClaimNames.Edit && c.Value == true.ToString()) && 
+                    context.User.HasClaim(c => c.Type == ClaimNames.Delete && c.Value == true.ToString())
+                ) || context.User.IsInRole(RoleNames.Developer);
         }
     }
 }

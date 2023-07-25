@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using IdentityModule;
+using IdentityModule.Authorize;
 using IdentityModule.Database;
 using IdentityModule.Models;
 using IdentityModule.ViewModels;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityModule.Controllers
 {
+    [Authorize(Policy = PolicyNames.Developer)]
     public class RolesController : Controller
     {
         private readonly IdentityDataContext _db;
@@ -35,7 +37,7 @@ namespace IdentityModule.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "OnlySuperAdminChecker")]
+        [Authorize(Policy = PolicyNames.OnlyDeveloperChecker)]
         public IActionResult Upsert(long? id)
         {
             if(id == null)
