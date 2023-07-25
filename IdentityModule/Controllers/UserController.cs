@@ -38,26 +38,26 @@ namespace IdentityModule.Controllers
 
         public IActionResult Edit(long userId)
         {
-            var objFromDb = _db.Users
+            var userFromDb = _db.Users
                 .Include(x => x.Roles)
-                .FirstOrDefault(u=> u.Id == userId);
+                .FirstOrDefault(x => x.Id == userId);
 
-            if (objFromDb == null)
+            if (userFromDb == null)
             {
                 return NotFound();
             }
 
             var model = new UserViewModel()
             {
-                Id = objFromDb.Id,
-                Name = objFromDb.Name,
-                UserName = objFromDb.UserName,
-                Email = objFromDb.Email,
+                Id = userFromDb.Id,
+                Name = userFromDb.Name,
+                UserName = userFromDb.UserName!,
+                Email = userFromDb.Email!,
                 Roles = _db.Roles.Select(x => new SelectListItem
                 {
                     Text = x.Name,
                     Value = x.Id.ToString(),
-                    Selected = objFromDb.Roles.Contains(x)
+                    Selected = userFromDb.Roles.Contains(x)
                 }).ToList()
             };
 
@@ -71,6 +71,7 @@ namespace IdentityModule.Controllers
             var objFromDb = _db.Users
                 .Include(x => x.Roles)
                 .FirstOrDefault(u => u.Id == user.Id);
+
             if (objFromDb == null)
             {
                 return NotFound();
@@ -78,29 +79,48 @@ namespace IdentityModule.Controllers
 
             if (ModelState.IsValid)
             {
+                var hasChanged = false;
                 var objFromDbRolesIds = objFromDb.Roles.Select(x => x.Id).ToList();
 
                 //Add
                 foreach(var roleId in user.RoleIds.Where(x => !objFromDbRolesIds.Contains(x)))
                 {
+                    hasChanged = true;
                     await _userManager.AddToRoleAsync(objFromDb, _db.Roles.FirstOrDefault(x => x.Id == roleId)!.Name!);
                 }
 
                 //Remove
                 foreach(var roleId in objFromDbRolesIds.Where(x => !user.RoleIds.Contains(x)))
                 {
+                    hasChanged = true;
                     await _userManager.RemoveFromRoleAsync(objFromDb, _db.Roles.FirstOrDefault(x => x.Id == roleId)!.Name!);
                 }
 
                 //Attributes
                 if(objFromDb.UserName != user.UserName)
+                {
+                    hasChanged = true;
                     objFromDb.UserName = user.UserName;
+                }
                 if(objFromDb.Email != user.Email)
+                {
+                    hasChanged = true;
                     objFromDb.Email = user.Email;
+                }
                 if(objFromDb.Name != user.Name)
+                {
+                    hasChanged = true;
                     objFromDb.Name = user.Name;
-                _db.SaveChanges();
+                }
+
+                if(hasChanged)
+                {
+                    objFromDb.Modified = DateTime.UtcNow;
+                    _db.SaveChanges();
+                }
+
                 TempData[SD.Success] = "User has been edited successfully.";
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -115,13 +135,14 @@ namespace IdentityModule.Controllers
         }
 
         [HttpPost]
-        public IActionResult LockUnlock(long userId)
+        public async Task<IActionResult> LockUnlock(long userId)
         {
-            var objFromDb = _db.Users.FirstOrDefault(u => u.Id == userId);
+            var objFromDb = await _db.Users.FindAsync(userId);
             if (objFromDb == null)
             {
                 return NotFound();
             }
+
             if(objFromDb.LockoutEnd!=null && objFromDb.LockoutEnd > DateTime.Now)
             {
                 //user is locked and will remain locked untill lockoutend time
@@ -135,22 +156,26 @@ namespace IdentityModule.Controllers
                 objFromDb.LockoutEnd = DateTime.UtcNow.AddYears(1000);
                 TempData[SD.Success] = "User locked successfully.";
             }
-            _db.SaveChanges();
-            return RedirectToAction(nameof(Index));
 
+            _db.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
-        public IActionResult Delete(long userId)
+        public async Task<IActionResult> Delete(long userId)
         {
-            var objFromDb = _db.Users.FirstOrDefault(u => u.Id == userId);
+            var objFromDb = await _db.Users.FindAsync(userId);
             if (objFromDb == null)
             {
                 return NotFound();
             }
+
             _db.Users.Remove(objFromDb);
             _db.SaveChanges();
+            
             TempData[SD.Success] = "User deleted successfully.";
+            
             return RedirectToAction(nameof(Index));
         }
 
@@ -218,6 +243,7 @@ namespace IdentityModule.Controllers
             }
 
             TempData[SD.Success] = "Claims updated successfully";
+            
             return RedirectToAction(nameof(Index));
         }
     }

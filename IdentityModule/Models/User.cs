@@ -15,8 +15,8 @@ namespace IdentityModule.Models
     {
         [Required]
         public string? Name { get; set; }
-        public DateTime Created { get; set; } = DateTime.UtcNow;
-        public DateTime Modified { get; set; } = DateTime.UtcNow;
+        public DateTime Created { get; set; }
+        public DateTime Modified { get; set; }
 
         public List<IdentityUserRole<long>> UserRoles { get; } = new();
         public List<Role> Roles { get; } = new();

@@ -128,6 +128,8 @@ namespace IdentityModule.Areas.Identity.Pages.Account
                     UserName = Input.Email, 
                     Email = Input.Email, 
                     Name = Input.Name, 
+                    Created = DateTime.UtcNow,
+                    Modified = DateTime.UtcNow
                 };
 
                 var result = await _userManager.CreateAsync(user);

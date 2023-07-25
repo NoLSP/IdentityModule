@@ -37,27 +37,25 @@ namespace IdentityModule.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = PolicyNames.OnlyDeveloperChecker)]
-        public IActionResult Upsert(long? id)
+        public async Task<IActionResult> Upsert(long? id)
         {
             if(id == null)
                 return View();
 
-            //update
-            var objFromDb = _db.Roles.FirstOrDefault(u => u.Id == id);
+            var model = new RoleViewModel();
 
-            var model = new RoleViewModel
+            var objFromDb = await _db.Roles.FindAsync(id);
+            if(objFromDb != null)
             {
-                Id = objFromDb.Id,
-                Name = objFromDb.Name
-            };
+                model.Id = objFromDb.Id;
+                model.Name = objFromDb.Name!;
+            }
 
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Policy = "OnlySuperAdminChecker")]
         public async Task<IActionResult> Upsert(RoleViewModel roleObj)
         {
             if(await _roleManager.RoleExistsAsync(roleObj.Name))
@@ -92,7 +90,6 @@ namespace IdentityModule.Controllers
 
 
         [HttpPost]
-        [Authorize(Policy = "OnlySuperAdminChecker")] 
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id)
         {

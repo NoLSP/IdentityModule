@@ -21,7 +21,6 @@ namespace IdentityModule.Authorize
         public const string Admin_CreateAccess = "Admin_CreateAccess";
         public const string Admin_Create_Edit_DeleteAccess = "Admin_Create_Edit_DeleteAccess";
         public const string Admin_Create_Edit_DeleteAccess_OR_Developer = "Admin_Create_Edit_DeleteAccess_OR_Developer";
-        public const string OnlyDeveloperChecker = "OnlyDeveloperChecker";
         public const string AdminWithMoreThan1000Days = "AdminWithMoreThan1000Days";
         public const string FirstNameAuth = "FirstNameAuth";
     }

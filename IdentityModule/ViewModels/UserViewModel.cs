@@ -8,15 +8,11 @@ namespace IdentityModule.ViewModels
 {
     public class UserViewModel
     {
-        [Required]
         public long Id { get; set; }
-        [Required]
         public string UserName { get; set; }
-        public string Name { get; set; }
-        [Required]
+        public string? Name { get; set; }
         public string Email { get; set; }
         public IEnumerable<SelectListItem>? Roles { get; set; }
-        [Required]
         public long[] RoleIds { get; set; }
     }
 }
