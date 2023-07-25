@@ -17,7 +17,7 @@ namespace IdentityModule.ViewModels
 
     public class UserClaim
     {
-        public string ClaimType { get; set; }
+        public string ClaimType { get; set; } = default!;
         public bool IsSelected { get; set; }
     }
 }

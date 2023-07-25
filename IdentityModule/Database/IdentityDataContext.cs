@@ -35,7 +35,7 @@ namespace IdentityModule.Database
                 .ToTable("UserRoles");
         }
 
-        public new DbSet<User> Users { get; set; }
-        public new DbSet<Role> Roles { get; set; }
+        public new DbSet<User> Users { get; set; } = default!;
+        public new DbSet<Role> Roles { get; set; } = default!;
     }
 }
