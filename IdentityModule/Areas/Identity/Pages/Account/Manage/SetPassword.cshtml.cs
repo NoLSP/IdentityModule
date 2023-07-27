@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityModule.Database;
 using IdentityModule.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +15,13 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IdentityDataContext _dataContext;
 
-        public SetPasswordModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager)
+        public SetPasswordModel(UserManager<User> userManager, SignInManager<User> signInManager, IdentityDataContext dataContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _dataContext = dataContext;
         }
 
         [BindProperty]
@@ -83,6 +84,8 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
                 }
                 return Page();
             }
+
+            await user.Update(_dataContext);
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your password has been set.";

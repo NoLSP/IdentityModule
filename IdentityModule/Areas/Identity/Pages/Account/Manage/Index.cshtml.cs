@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityModule.Database;
 using IdentityModule.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +15,13 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IdentityDataContext _dataContext;
 
-        public IndexModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager)
+        public IndexModel(UserManager<User> userManager, SignInManager<User> signInManager, IdentityDataContext dataContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _dataContext = dataContext;
         }
 
         public string Username { get; set; } = default!;
@@ -36,18 +37,23 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Phone number")]
             public string? PhoneNumber { get; set; }
+
+            [Display(Name = "Name")]
+            public string? Name { get; set; }
         }
 
         private async Task LoadAsync(User user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
+            var name = user.Name;
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
             Username = userName!;
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber,
+                Name = name
             };
         }
 
@@ -77,6 +83,8 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
+            var hasChanged = false;
+
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
             if (Input.PhoneNumber != phoneNumber)
             {
@@ -84,6 +92,26 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
                 if (!setPhoneResult.Succeeded)
                 {
                     StatusMessage = "Unexpected error when trying to set phone number.";
+                    return RedirectToPage();
+                }
+                hasChanged = true;
+            }
+
+            if (Input.Name != user.Name)
+            {
+                    user.Name = Input.Name;
+                    hasChanged = true;
+            }
+
+            if(hasChanged)
+            {
+                try
+                {
+                    await user.Update(_dataContext);
+                }
+                catch(Exception)
+                {
+                    StatusMessage = "Unexpected error when trying to set Name.";
                     return RedirectToPage();
                 }
             }

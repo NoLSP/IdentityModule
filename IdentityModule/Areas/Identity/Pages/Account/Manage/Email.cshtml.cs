@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using IdentityModule.Models;
+using IdentityModule.Database;
 
 namespace IdentityModule.Areas.Identity.Pages.Account.Manage
 {
@@ -19,15 +20,14 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IEmailSender _emailSender;
+        private readonly IdentityDataContext _dataContext;
 
-        public EmailModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager,
-            IEmailSender emailSender)
+        public EmailModel(UserManager<User> userManager, SignInManager<User> signInManager, IEmailSender emailSender, IdentityDataContext dataContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
+            _dataContext = dataContext;
         }
 
         public string Username { get; set; } = default!;
@@ -103,6 +103,8 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
                     Input.NewEmail,
                     "Confirm your email",
                     $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>clicking here</a>.");
+
+                await user.Update(_dataContext);
 
                 StatusMessage = "Confirmation link to change email sent. Please check your email.";
                 return RedirectToPage();

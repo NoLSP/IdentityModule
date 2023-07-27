@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IdentityModule.Database;
 using IdentityModule.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -17,10 +18,12 @@ namespace IdentityModule.Areas.Identity.Pages.Account
     public class ResetPasswordModel : PageModel
     {
         private readonly UserManager<User> _userManager;
+        private readonly IdentityDataContext _dataContext;
 
-        public ResetPasswordModel(UserManager<User> userManager)
+        public ResetPasswordModel(UserManager<User> userManager, IdentityDataContext dataContext)
         {
             _userManager = userManager;
+            _dataContext = dataContext;
         }
 
         [BindProperty]
@@ -78,6 +81,8 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
+                await user.Update(_dataContext);
+
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 

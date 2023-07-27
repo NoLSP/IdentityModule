@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
+using IdentityModule.Database;
 
 namespace IdentityModule.Models
 {
@@ -24,6 +25,13 @@ namespace IdentityModule.Models
         public async Task<bool> IsAdministrator(UserManager<User> userManager)
         {
             return await userManager.IsInRoleAsync(this, RoleNames.Administrator);
+        }
+
+        public async Task Update(IdentityDataContext dataContext)
+        {
+            this.Modified = DateTime.UtcNow;
+            dataContext.Entry(this).State = EntityState.Modified;
+            await dataContext.SaveChangesAsync(); 
         }
     }
 }
