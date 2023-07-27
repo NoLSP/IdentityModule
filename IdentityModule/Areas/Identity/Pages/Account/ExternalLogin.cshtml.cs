@@ -36,22 +36,21 @@ namespace IdentityModule.Areas.Identity.Pages.Account
         }
 
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = default!;
 
-        public string ProviderDisplayName { get; set; }
+        public string ProviderDisplayName { get; set; } = default!;
 
-        public string ReturnUrl { get; set; }
+        public string? ReturnUrl { get; set; }
 
         [TempData]
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         public class InputModel
         {
             [Required]
             [EmailAddress]
-            public string Email { get; set; }
-            [Required]
-            public string Name { get; set; }
+            public string Email { get; set; } = default!;
+            public string? Name { get; set; }
         }
 
         public IActionResult OnGetAsync()
@@ -59,7 +58,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             return RedirectToPage("./Login");
         }
 
-        public IActionResult OnPost(string provider, string returnUrl = null)
+        public IActionResult OnPost(string provider, string? returnUrl = null)
         {
             // Request a redirect to the external login provider.
             var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
@@ -67,7 +66,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             return new ChallengeResult(provider, properties);
         }
 
-        public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> OnGetCallbackAsync(string? returnUrl = null, string? remoteError = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
             if (remoteError != null)
@@ -86,7 +85,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor : true);
             if (result.Succeeded)
             {
-                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
+                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity!.Name, info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }
             if (result.IsLockedOut)
@@ -97,12 +96,12 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             {
                 // If the user does not have an account, then ask the user to create an account.
                 ReturnUrl = returnUrl;
-                ProviderDisplayName = info.ProviderDisplayName;
+                ProviderDisplayName = info!.ProviderDisplayName!;
                 if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
                 {
                     Input = new InputModel
                     {
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+                        Email = info!.Principal.FindFirstValue(ClaimTypes.Email) ?? "",
                         Name  = info.Principal.FindFirstValue(ClaimTypes.Name)
                     };
                 }
@@ -110,7 +109,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             }
         }
 
-        public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
             // Get the information about the user from the external login provider
@@ -172,7 +171,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
                 }
             }
 
-            ProviderDisplayName = info.ProviderDisplayName;
+            ProviderDisplayName = info!.ProviderDisplayName!;
             ReturnUrl = returnUrl;
             return Page();
         }

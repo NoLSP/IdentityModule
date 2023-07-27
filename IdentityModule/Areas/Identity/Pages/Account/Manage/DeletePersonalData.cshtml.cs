@@ -26,13 +26,13 @@ namespace IdentityModule.Areas.Identity.Pages.Account.Manage
         }
 
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = default!;
 
         public class InputModel
         {
             [Required]
             [DataType(DataType.Password)]
-            public string Password { get; set; }
+            public string Password { get; set; } = default!;
         }
 
         public bool RequirePassword { get; set; }

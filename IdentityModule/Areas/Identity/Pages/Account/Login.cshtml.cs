@@ -33,29 +33,29 @@ namespace IdentityModule.Areas.Identity.Pages.Account
         }
 
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = default!;
 
-        public IList<AuthenticationScheme> ExternalLogins { get; set; }
+        public IList<AuthenticationScheme> ExternalLogins { get; set; } = default!;
 
-        public string ReturnUrl { get; set; }
+        public string? ReturnUrl { get; set; }
 
         [TempData]
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         public class InputModel
         {
             [Required]
-            public string UserName { get; set; }
+            public string UserName { get; set; } = default!;
 
             [Required]
             [DataType(DataType.Password)]
-            public string Password { get; set; }
+            public string Password { get; set; } = default!;
 
             [Display(Name = "Remember me?")]
             public bool RememberMe { get; set; }
         }
 
-        public async Task OnGetAsync(string returnUrl = null)
+        public async Task OnGetAsync(string? returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
@@ -72,7 +72,7 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
 
@@ -80,23 +80,23 @@ namespace IdentityModule.Areas.Identity.Pages.Account
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(Input.UserName, Input.Password, Input.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    var user = _db.Users.FirstOrDefault(u => u.UserName.ToLower() == Input.UserName.ToLower());
-                    var claim = await _userManager.GetClaimsAsync(user);
-                    if (claim.Count > 0)
-                    {
-                        try
-                        {
-                            await _userManager.RemoveClaimAsync(user, claim.FirstOrDefault(u => u.Type == "FirstName"));
-                        }
-                        catch(Exception)
-                        {
+                    // var user = _db.Users.FirstOrDefault(u => u.UserName!.ToLower() == Input.UserName.ToLower());
+                    // var claim = await _userManager.GetClaimsAsync(user!);
+                    // if (claim.Count > 0)
+                    // {
+                    //     try
+                    //     {
+                    //         await _userManager.RemoveClaimAsync(user!, claim.FirstOrDefault(u => u.Type == "FirstName"));
+                    //     }
+                    //     catch(Exception)
+                    //     {
 
-                        }
-                    }
-                    await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FirstName", user.Name));
+                    //     }
+                    // }
+                    // await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FirstName", user.Name));
 
 
                     _logger.LogInformation("User logged in.");
